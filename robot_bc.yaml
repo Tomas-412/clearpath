@@ -1,0 +1,68 @@
+serial_number: j100-0000
+version: 0
+system:
+  hosts:
+    - hostname: cpr-j100-0000
+      ip: 192.168.131.1
+  ros2:
+    username: tomas-jelinek
+    namespace: a200_0000
+    domain_id: 0
+    middleware: # This section is described further below
+      implementation: rmw_fastrtps_cpp
+    workspaces:
+      - /home/tomas-jelinek/clearpath_sim_ws/install/setup.bash # Path to the custom workspace
+      
+platform:
+  attachments:
+    - name: front_fender
+      type: j100.fender
+    - name: rear_fender
+      type: j100.fender
+      rpy: [0.0, 0.0, 3.1415]
+    
+   # Controllers configuration
+  controllers:
+    platform_velocity_controller:
+      type: "diff_drive_controller/DiffDriveController"
+      ros__parameters:
+        use_sim_time: true
+        cmd_vel_timeout: 0.5
+        publish_rate: 50
+        velocity_rolling_window_size: 10
+        cmd_vel_topic: "/a200_0000/cmd_vel"  # Ensure the namespace matches
+        left_wheel_names: ["left_wheel_joint"]
+        right_wheel_names: ["right_wheel_joint"]
+        wheel_separation: 0.287
+        wheel_radius: 0.1
+        use_stamped_vel: false
+        
+    joint_state_broadcaster:
+      type: "joint_state_broadcaster/JointStateBroadcaster"
+      ros__parameters:
+        use_sim_time: true
+
+sensors:
+  lidar3d:
+  - model: velodyne_lidar
+    urdf_enabled: true
+    launch_enabled: true
+    parent: default_mount
+    xyz: [0.0, 0.0, 0.0]
+    rpy: [0.0, 0.0, 0.0]
+    ros_parameters:
+      velodyne_driver_node:
+        frame_id: lidar3d_0_laser
+        device_ip: 192.168.131.25
+        port: 2368
+        model: VLP16
+      velodyne_transform_node:
+        model: VLP16
+        fixed_frame: lidar3d_0_laser
+        target_frame: lidar3d_0_laser
+        
+        # Add the controller timeout here
+ros_parameters:
+  controller_manager:
+    timeout: 120  # Set to a higher value to give more time for loading controllers
+
